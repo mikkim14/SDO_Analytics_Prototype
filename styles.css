@@ -706,6 +706,66 @@ button {
     height: auto;
 }
 
+/* General Analytics Summary Cards */
+.analytics-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+.summary-item {
+    background: linear-gradient(90deg, rgba(102,126,234,0.12), rgba(118,75,162,0.06));
+    padding: 18px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(102,126,234,0.12);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+}
+
+.summary-label {
+    color: #aab4d6;
+    font-size: 0.82em;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.summary-value {
+    font-size: 1.45em;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+/* Analytics selector styling */
+#analytics-category-select {
+    margin: 8px 0 12px 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #e2e8f0;
+    border: 2px solid #334155;
+}
+
+/* Make analytics charts taller and more prominent */
+#analytics-top-categories, #analytics-monthly-average, #analytics-category-trend {
+    width: 100% !important;
+    height: 320px !important;
+}
+
+/* Full width chart container for category trend */
+.chart-container[style*="grid-column: 1 / -1"] {
+    padding: 24px;
+}
+
+@media (max-width: 1024px) {
+    #analytics-top-categories, #analytics-monthly-average, #analytics-category-trend {
+        height: 260px !important;
+    }
+}
+
+
 /* Gas Breakdown Grid */
 .gas-breakdown-grid {
     display: grid;

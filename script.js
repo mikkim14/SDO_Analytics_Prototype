@@ -3,6 +3,12 @@ let chartInstances = {};
 let forecastModel = null;
 let modelMetrics = {};
 
+// Number formatting helper
+function formatNumber(value, decimals = 2) {
+    if (value === null || value === undefined || isNaN(value)) return '--';
+    return Number(value).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
 // ============= DATA MANAGEMENT =============
 document.getElementById('load-sample').addEventListener('click', () => {
     data = JSON.parse(JSON.stringify(sampleData));
@@ -142,6 +148,8 @@ function updateDashboard() {
     drawDashboardIndustryChart();
     drawGasPieChart();
     drawPeriodComparisonTable(stats.yearlyEmissions);
+    // Refresh general analytics when dashboard updates
+    updateAnalytics();
 }
 
 function drawDashboardTrendChart(yearlyEmissions) {
@@ -614,6 +622,121 @@ function showMessage(message, type) {
     setTimeout(() => {
         msgElement.classList.remove('show');
     }, 4000);
+}
+
+// ============= GENERAL ANALYTICS =============
+function updateAnalytics() {
+    if (!data || data.length === 0) {
+        document.getElementById('analytics-top-category').textContent = '--';
+        document.getElementById('analytics-avg-monthly').textContent = '-- kg';
+        document.getElementById('analytics-avg-per-category').textContent = '-- kg';
+        // destroy charts if present
+        ['analytics-top-categories','analytics-monthly-average','analytics-category-trend'].forEach(id => {
+            if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+        });
+        const sel = document.getElementById('analytics-category-select'); if (sel) sel.innerHTML = '';
+        return;
+    }
+
+    // Top categories by total consumption
+    const categoryTotals = {};
+    data.forEach(d => { categoryTotals[d.category] = (categoryTotals[d.category] || 0) + d.emission; });
+    const sorted = Object.keys(categoryTotals).map(k => ({ category: k, total: categoryTotals[k] })).sort((a,b) => b.total - a.total);
+
+    const top = sorted[0];
+    if (top) document.getElementById('analytics-top-category').textContent = `${top.category} — ${formatNumber(top.total)} kg`;
+
+    // Average monthly for latest year
+    const years = [...new Set(data.map(d => d.year))].sort();
+    const latestYear = years[years.length - 1];
+    const latestYearEntries = data.filter(d => d.year === latestYear);
+    const totalLatest = latestYearEntries.reduce((s, v) => s + v.emission, 0);
+    const avgMonthly = totalLatest / 12;
+    document.getElementById('analytics-avg-monthly').textContent = `${formatNumber(avgMonthly)} kg`;
+
+    // Average per category (simple mean of totals)
+    const avgPerCategory = sorted.reduce((s, c) => s + c.total, 0) / (sorted.length || 1);
+    document.getElementById('analytics-avg-per-category').textContent = `${formatNumber(avgPerCategory)} kg`;
+
+    // Draw top categories bar
+    drawAnalyticsTopCategories(sorted);
+
+    // Draw monthly average chart (for latest year)
+    drawAnalyticsMonthlyAverage(latestYear, latestYearEntries);
+
+    // Populate category selector and draw time series for first category
+    populateAnalyticsCategorySelect(Object.keys(categoryTotals));
+}
+
+function drawAnalyticsTopCategories(sortedData) {
+    const ctx = document.getElementById('analytics-top-categories').getContext('2d');
+    if (chartInstances['analytics-top-categories']) chartInstances['analytics-top-categories'].destroy();
+
+    chartInstances['analytics-top-categories'] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: sortedData.map(d => d.category),
+            datasets: [{
+                label: 'Total Consumption (kg)',
+                data: sortedData.map(d => d.total),
+                backgroundColor: ['#667eea','#764ba2','#f59e0b','#10b981','#ef4444','#3b82f6','#ec4899']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: { enabled: true } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+function drawAnalyticsMonthlyAverage(year, entries) {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const monthTotals = Array(12).fill(0);
+    entries.forEach(e => {
+        const m = e.month ? (e.month - 1) : null;
+        if (m !== null && m >= 0 && m < 12) monthTotals[m] += e.emission;
+        else {
+            // if no month provided, distribute evenly
+            const perMonth = e.emission / 12;
+            for (let i=0;i<12;i++) monthTotals[i] += perMonth;
+        }
+    });
+
+    const ctx = document.getElementById('analytics-monthly-average').getContext('2d');
+    if (chartInstances['analytics-monthly-average']) chartInstances['analytics-monthly-average'].destroy();
+
+    chartInstances['analytics-monthly-average'] = new Chart(ctx, {
+        type: 'line',
+        data: { labels: months, datasets: [{ label: `${year} Monthly (kg)`, data: monthTotals, borderColor: '#3b82f6', fill: false }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+}
+
+function populateAnalyticsCategorySelect(categories) {
+    const sel = document.getElementById('analytics-category-select');
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+    sel.addEventListener('change', () => drawAnalyticsCategoryTrend(sel.value));
+    const toSelect = categories.includes(prev) ? prev : categories[0];
+    if (toSelect) drawAnalyticsCategoryTrend(toSelect);
+}
+
+function drawAnalyticsCategoryTrend(category) {
+    const grouped = {};
+    data.forEach(d => { if (d.category === category) grouped[d.year] = (grouped[d.year] || 0) + d.emission; });
+    const years = Object.keys(grouped).map(y => parseInt(y)).sort((a,b) => a-b);
+    const values = years.map(y => grouped[y]);
+
+    const ctx = document.getElementById('analytics-category-trend').getContext('2d');
+    if (chartInstances['analytics-category-trend']) chartInstances['analytics-category-trend'].destroy();
+
+    chartInstances['analytics-category-trend'] = new Chart(ctx, {
+        type: 'line',
+        data: { labels: years, datasets: [{ label: `${category} (kg)`, data: values, borderColor: '#10b981', fill: false }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
 }
 
 // Initialize
