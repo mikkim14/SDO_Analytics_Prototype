@@ -11,11 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Dashboard initialization complete');
 });
 
-// Alternative fallback - load data immediately if page is already loaded
 if (document.readyState === 'loading') {
-    // Page is still loading, DOMContentLoaded will handle it
 } else {
-    // Page is already loaded, init immediately
     setTimeout(() => {
         if (originalData.length === 0) {
             loadEmissionsData();
@@ -25,7 +22,6 @@ if (document.readyState === 'loading') {
     }, 100);
 }
 
-// Load emissions data with error checking
 function loadEmissionsData() {
     try {
         if (typeof emissionsData !== 'undefined' && emissionsData && emissionsData.length > 0) {
@@ -50,7 +46,6 @@ function setupEventListeners() {
     document.getElementById('reset-filters-btn').addEventListener('click', resetFilters);
 }
 
-// Get total for a specific category
 function getCategoryTotal(category) {
     return filteredData
         .filter(item => item.category === category)
@@ -83,11 +78,9 @@ function resetFilters() {
     updateDashboard();
 }
 
-// Update dashboard with descriptive analytics
 function updateDashboard() {
     console.log('updateDashboard called. filteredData length:', filteredData.length, 'originalData length:', originalData.length);
     
-    // Safeguard: if filteredData is empty but originalData has data, use originalData
     if (filteredData.length === 0 && originalData.length > 0) {
         filteredData = JSON.parse(JSON.stringify(originalData));
         console.log('Populated filteredData from originalData');
@@ -124,7 +117,7 @@ function updateDashboard() {
         food: getCategoryTotal('Food')
     };
 
-    // Update KPI Card 1: Total Emissions with category breakdown
+    // Total Emissions with category breakdown
     document.getElementById('total-emissions').textContent = formatNumber(stats.total);
     document.getElementById('electricity-value').textContent = formatNumber(categoryTotals.electricity) + ' kg CO₂e';
     document.getElementById('fuel-value').textContent = formatNumber(categoryTotals.fuel) + ' kg CO₂e';
@@ -136,13 +129,13 @@ function updateDashboard() {
     document.getElementById('accommodation-value').textContent = formatNumber(categoryTotals.travel * 0.25) + ' kg CO₂e';
     document.getElementById('food-value').textContent = formatNumber(categoryTotals.food) + ' kg CO₂e';
 
-    // Update KPI Card 2: Metric Tons
+    // Metric Tons
     const metricTons = stats.total / 1000;
     document.getElementById('metric-tons').textContent = formatNumber(metricTons, 3);
     document.getElementById('data-points').textContent = stats.count;
     document.getElementById('avg-per-record').textContent = formatNumber(stats.average, 2) + ' kg';
 
-    // Update KPI Card 3: Tree Offset
+    // Tree Offset
     const treesNeeded = Math.ceil(stats.total / 21);
     document.getElementById('trees-needed').textContent = treesNeeded.toLocaleString();
 
@@ -153,7 +146,7 @@ function updateDashboard() {
     generatePeriodComparisonTable();
 }
 
-// Display empty state
+// empty state
 function displayEmptyState() {
     document.getElementById('total-emissions').textContent = '0.00';
     document.getElementById('electricity-value').textContent = '0.00 kg CO₂e';
@@ -186,7 +179,7 @@ function calculateStdDev(values) {
     return Math.sqrt(avgSquaredDifference);
 }
 
-// Generate trend chart
+// trend chart
 function generateTrendChart() {
     const groupedByYear = {};
     
@@ -205,7 +198,6 @@ function generateTrendChart() {
     const ctx = document.getElementById('dashboard-trend');
     if (!ctx) return;
 
-    // Destroy existing chart if it exists
     if (window.trendChart) {
         window.trendChart.destroy();
     }
@@ -238,7 +230,7 @@ function generateTrendChart() {
     });
 }
 
-// Generate category breakdown chart
+// category breakdown chart
 function generateCategoryChart() {
     const groupedByCategory = {};
     
@@ -283,7 +275,7 @@ function generateCategoryChart() {
     });
 }
 
-// Generate composition pie chart
+//pie chart
 function generateCompositionChart() {
     const groupedByCategory = {};
     
@@ -324,7 +316,7 @@ function generateCompositionChart() {
     });
 }
 
-// Format number utility
+// number utility
 function formatNumber(value, decimals = 2) {
     if (value === null || value === undefined || isNaN(value)) return '--';
     return Number(value).toLocaleString(undefined, { 
@@ -333,7 +325,7 @@ function formatNumber(value, decimals = 2) {
     });
 }
 
-// Generate period comparison table
+// period comparison table
 function generatePeriodComparisonTable() {
     const groupedByYear = {};
     
