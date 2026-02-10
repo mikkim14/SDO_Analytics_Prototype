@@ -196,43 +196,6 @@
             </div>
         </section>
 
-        <!-- General Analytics Section -->
-        <section id="general-analytics" class="main-section">
-            <h2>General Analytics</h2>
-
-            <div class="analytics-summary">
-                <div class="summary-item">
-                    <div class="summary-label">Top Category (latest)</div>
-                    <div class="summary-value" id="analytics-top-category">--</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">Average Monthly (latest year)</div>
-                    <div class="summary-value" id="analytics-avg-monthly">-- kg</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">Average per Category</div>
-                    <div class="summary-value" id="analytics-avg-per-category">-- kg</div>
-                </div>
-            </div>
-
-            <div class="analytics-grid">
-                <div class="chart-container">
-                    <h3>Top Categories (by total consumption)</h3>
-                    <canvas id="analytics-top-categories"></canvas>
-                </div>
-                <div class="chart-container">
-                    <h3>Monthly Average (latest year)</h3>
-                    <canvas id="analytics-monthly-average"></canvas>
-                </div>
-                <div class="chart-container" style="grid-column: 1 / -1;">
-                    <h3>Category Time Series</h3>
-                    <label for="analytics-category-select">Category: </label>
-                    <select id="analytics-category-select"></select>
-                    <canvas id="analytics-category-trend"></canvas>
-                </div>
-            </div>
-        </section>
-
         <!-- Data Input Section -->
         <section id="data-input" class="main-section">
             <h2> Data Input & Management</h2>
@@ -298,9 +261,46 @@
             </div>
         </section>
 
+        <!-- General Analytics Section -->
+        <section id="general-analytics" class="main-section">
+            <h2>General Analytics</h2>
+
+            <div class="analytics-summary">
+                <div class="summary-item">
+                    <div class="summary-label">Top Category (latest)</div>
+                    <div class="summary-value" id="analytics-top-category">--</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Average Monthly (latest year)</div>
+                    <div class="summary-value" id="analytics-avg-monthly">-- kg</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Average per Category</div>
+                    <div class="summary-value" id="analytics-avg-per-category">-- kg</div>
+                </div>
+            </div>
+
+            <div class="analytics-grid">
+                <div class="chart-container">
+                    <h3>Top Categories (by total consumption)</h3>
+                    <canvas id="analytics-top-categories"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Monthly Average (latest year)</h3>
+                    <canvas id="analytics-monthly-average"></canvas>
+                </div>
+                <div class="chart-container" style="grid-column: 1 / -1;">
+                    <h3>Category Time Series</h3>
+                    <label for="analytics-category-select">Category: </label>
+                    <select id="analytics-category-select"></select>
+                    <canvas id="analytics-category-trend"></canvas>
+                </div>
+            </div>
+        </section>
+
         <!-- Forecasting Section -->
         <section id="forecasting" class="main-section">
-            <h2> Forecasting (TFT-inspired with ML)</h2>
+            <h2> Forecasting </h2>
             
             <div class="forecast-controls">
                 <div class="control-group">
