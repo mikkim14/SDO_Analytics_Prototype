@@ -10,99 +10,105 @@ function formatNumber(value, decimals = 2) {
 }
 
 // ============= DATA MANAGEMENT =============
-document.getElementById('load-sample').addEventListener('click', () => {
-    data = JSON.parse(JSON.stringify(sampleData));
-    showMessage('Sample data loaded successfully!', 'success');
-    updateDataList();
-    updateDashboard();
-});
-
-document.getElementById('manual-input').addEventListener('submit', (e) => {
-    e.preventDefault();
+// Wait for DOM to be ready before adding event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    // Only setup data management if using this system (not dashboard.js emissions data)
+    const loadSampleBtn = document.getElementById('load-sample');
+    const manualInput = document.getElementById('manual-input');
+    const applyFiltersBtn = document.getElementById('apply-filters');
+    const exportCsvBtn = document.getElementById('export-csv');
+    const exportJsonBtn = document.getElementById('export-json');
+    const clearDataBtn = document.getElementById('clear-data');
     
-    const year = parseInt(document.getElementById('year').value);
-    const month = document.getElementById('month').value ? parseInt(document.getElementById('month').value) : null;
-    const emission = parseFloat(document.getElementById('emission').value);
-    const category = document.getElementById('category').value;
-    const source = document.getElementById('source').value || 'Unknown';
-    
-    // Validate
-    const errors = validateDataEntry(year, emission, category);
-    if (errors.length > 0) {
-        showMessage('Validation errors: ' + errors.join('; '), 'error');
-        return;
+    if (loadSampleBtn) {
+        loadSampleBtn.addEventListener('click', () => {
+            data = JSON.parse(JSON.stringify(sampleData || []));
+            showMessage('Sample data loaded successfully!', 'success');
+            updateDataList();
+        });
     }
-    
-    data.push({ year, month: month || undefined, emission, category, source });
-    showMessage('Data entry added successfully!', 'success');
-    updateDataList();
-    updateDashboard();
-    e.target.reset();
-});
 
-document.getElementById('apply-filters').addEventListener('click', () => {
-    const filterCategory = document.getElementById('filter-category').value.toLowerCase();
-    const filterYear = document.getElementById('filter-year').value;
-    
-    let filtered = data;
-    if (filterCategory) filtered = filtered.filter(d => d.category.toLowerCase().includes(filterCategory));
-    if (filterYear) filtered = filtered.filter(d => d.year === parseInt(filterYear));
-    
-    displayFilteredData(filtered);
-});
-
-function displayFilteredData(filteredData) {
-    const list = document.getElementById('data-list');
-    list.innerHTML = filteredData.map((d, idx) => 
-        `<li>
-            <strong>${d.year}${d.month ? '-' + d.month : ''}</strong> | 
-            ${d.emission.toFixed(2)} kg | 
-            ${d.category} from ${d.source}
-            <button class="delete-btn" onclick="deleteDataPoint(${data.indexOf(d)})" style="float:right; background:#dc2626; padding:5px 10px; color:white; border:none; border-radius:4px; cursor:pointer;">✕</button>
-        </li>`
-    ).join('');
-}
-
-function updateDataList() {
-    document.getElementById('entry-count').textContent = data.length;
-    displayFilteredData(data);
-}
-
-function deleteDataPoint(index) {
-    data.splice(index, 1);
-    updateDataList();
-    updateDashboard();
-}
-
-// ============= EXPORT FUNCTIONS =============
-document.getElementById('export-csv').addEventListener('click', () => {
-    if (data.length === 0) {
-        showMessage('No data to export!', 'warning');
-        return;
+    if (manualInput) {
+        manualInput.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const year = parseInt(document.getElementById('year').value);
+            const month = document.getElementById('month').value ? parseInt(document.getElementById('month').value) : null;
+            const emission = parseFloat(document.getElementById('emission').value);
+            const category = document.getElementById('category').value;
+            const source = document.getElementById('source').value || 'Unknown';
+            
+            // Validate
+            const errors = validateDataEntry(year, emission, category);
+            if (errors.length > 0) {
+                showMessage('Validation errors: ' + errors.join('; '), 'error');
+                return;
+            }
+            
+            data.push({ year, month: month || undefined, emission, category, source });
+            showMessage('Data entry added successfully!', 'success');
+            updateDataList();
+            e.target.reset();
+        });
     }
-    
-    let csv = 'Year,Month,Consumption (kg),Category,Source\n';
-    data.forEach(d => {
-        csv += `${d.year},${d.month || ''},${d.emission},${d.category},${d.source}\n`;
-    });
-    
-    downloadFile(csv, 'consumption-data.csv', 'text/csv');
-});
 
-document.getElementById('export-json').addEventListener('click', () => {
-    if (data.length === 0) {
-        showMessage('No data to export!', 'warning');
-        return;
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            const filterCategory = document.getElementById('filter-category').value.toLowerCase();
+            const filterYear = document.getElementById('filter-year').value;
+            
+            let filtered = data;
+            if (filterCategory) filtered = filtered.filter(d => d.category.toLowerCase().includes(filterCategory));
+            if (filterYear) filtered = filtered.filter(d => d.year === parseInt(filterYear));
+            
+            displayFilteredData(filtered);
+        });
     }
-    
-    const enrichedData = data.map(d => ({
-        ...d,
-        emission_kg: d.emission
-    }));
-    
-    const json = JSON.stringify(enrichedData, null, 2);
-    downloadFile(json, 'consumption-data.json', 'application/json');
-});
+
+    // Export buttons
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', () => {
+            if (data.length === 0) {
+                showMessage('No data to export!', 'warning');
+                return;
+            }
+            
+            let csv = 'Year,Month,Consumption (kg),Category,Source\n';
+            data.forEach(d => {
+                csv += `${d.year},${d.month || ''},${d.emission},${d.category},${d.source}\n`;
+            });
+            
+            downloadFile(csv, 'consumption-data.csv', 'text/csv');
+        });
+    }
+
+    if (exportJsonBtn) {
+        exportJsonBtn.addEventListener('click', () => {
+            if (data.length === 0) {
+                showMessage('No data to export!', 'warning');
+                return;
+            }
+            
+            const enrichedData = data.map(d => ({
+                ...d,
+                emission_kg: d.emission
+            }));
+            
+            const json = JSON.stringify(enrichedData, null, 2);
+            downloadFile(json, 'consumption-data.json', 'application/json');
+        });
+    }
+
+    if (clearDataBtn) {
+        clearDataBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                data = [];
+                updateDataList();
+                showMessage('All data cleared!', 'info');
+            }
+        });
+    }
+}); // Close DOMContentLoaded event
 
 function downloadFile(content, filename, type) {
     const blob = new Blob([content], { type });
@@ -117,17 +123,36 @@ function downloadFile(content, filename, type) {
     showMessage(`${filename} exported successfully!`, 'success');
 }
 
-document.getElementById('clear-data').addEventListener('click', () => {
-    if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-        data = [];
-        updateDataList();
-        updateDashboard();
-        updateAnalytics();
-        showMessage('All data cleared!', 'info');
-    }
-});
+function displayFilteredData(filteredData) {
+    const list = document.getElementById('data-list');
+    if (!list) return;
+    list.innerHTML = filteredData.map((d, idx) => 
+        `<li>
+            <strong>${d.year}${d.month ? '-' + d.month : ''}</strong> | 
+            ${d.emission.toFixed(2)} kg | 
+            ${d.category} from ${d.source}
+            <button class="delete-btn" onclick="deleteDataPoint(${data.indexOf(d)})" style="float:right; background:#dc2626; padding:5px 10px; color:white; border:none; border-radius:4px; cursor:pointer;">✕</button>
+        </li>`
+    ).join('');
+}
+
+function updateDataList() {
+    const entryCount = document.getElementById('entry-count');
+    if (!entryCount) return;
+    entryCount.textContent = data.length;
+    displayFilteredData(data);
+}
+
+function deleteDataPoint(index) {
+    data.splice(index, 1);
+    updateDataList();
+}
 
 // ============= DASHBOARD =============
+// NOTE: Dashboard.js handles the main dashboard with emissions data
+// This section is for the data input management only and should not interfere with the main dashboard
+// Commented out to prevent conflicts with dashboard.js
+/*
 function updateDashboard() {
     if (data.length === 0) {
         document.getElementById('total-emissions').textContent = '--';
@@ -738,8 +763,7 @@ function drawAnalyticsCategoryTrend(category) {
         options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
     });
 }
+*/ // End of commented conflicting functions from script.js
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    // Single page layout - all content visible
-});
+// The dashboard now uses dashboard.js with emissions data from emissions-data.js
+// All chart generation and analytics are handled by dashboard.js and Chart.js
